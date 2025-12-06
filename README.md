@@ -232,3 +232,17 @@ For more questions/discussions feel free to stop by **#nanoGPT** on Discord:
 ## acknowledgements
 
 All nanoGPT experiments are powered by GPUs on [Lambda labs](https://lambdalabs.com), my favorite Cloud GPU provider. Thank you Lambda labs for sponsoring nanoGPT!
+
+
+
+# Actual stuff
+python3 data/ese546data/prepare.py
+
+python3 train.py config/train_546.py --device=cpu --compile=False --eval_iters=20 --log_interval=1 --block_size=64 --batch_size=12 --n_layer=4 --n_head=4 --n_embd=128 --max_iters=2000 --lr_decay_iters=2000 --dropout=0.0
+
+python3 sample.py \
+    --out_dir=out-546 \
+    --device=cpu \
+    --start="1+1
+    " \
+    --num_samples=1 --max_new_tokens=100
