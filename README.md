@@ -243,6 +243,7 @@ python3 train.py config/train_546.py --device=cpu --compile=False --eval_iters=2
 python3 sample.py \
     --out_dir=out-546 \
     --device=cpu \
-    --start="1+1
-    " \
+    --start="
+1+1
+" \
     --num_samples=1 --max_new_tokens=100
