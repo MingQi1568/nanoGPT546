@@ -119,9 +119,7 @@ def calculate(string):
     return "\n".join(output)
 
 
-
-
-# run generation
+# run generation HELLO
 with torch.no_grad():
     with ctx:
         for k in range(num_samples):
