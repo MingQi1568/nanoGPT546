@@ -13,10 +13,29 @@ from model import GPTConfig, GPT
 # -----------------------------------------------------------------------------
 init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
 out_dir = 'out-546' # ignored if init_from is not 'resume'
-start = "19+19" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
+start = """
+abs(-16)
+$|\abs -16 
+=16
+16
+16\&\
+abs(-8)
+$|\abs -8 
+=8
+8
+8\&\
+abs(abs(-12))
+abs($)|\abs -12 
+=12
+abs(12)
+$|\abs 12 
+=12
+12
+12\&\
+19+34""" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
 num_samples = 1 # number of samples to draw
 max_new_tokens = 20 # number of tokens generated in each sample
-temperature = 0.8 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions
+temperature = 0.1 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions
 top_k = 200 # retain only the top_k most likely tokens, clamp others to have 0 probability
 seed = 1337
 device = 'cuda:3' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
@@ -170,7 +189,7 @@ with torch.no_grad():
             
             y = model.generate(x, 2, temperature=temperature, top_k=top_k)
             decoded = decode(y[0].tolist())
-            while "\\&\\" not in decoded and len(decoded) < 100:
+            while "\\&\\" not in decoded[-5:] and len(decoded) < 1000:
                 y = torch.tensor(encode(calculate(decoded)))[None, ...].to(device)
                 y = model.generate(y, 2, temperature=temperature, top_k=top_k)
                 decoded = decode(y[0].tolist())

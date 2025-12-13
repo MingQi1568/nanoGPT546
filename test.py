@@ -14,8 +14,8 @@ from edited_sample import calculate
 init_from = 'resume' # 'resume' (from an out_dir) or a gpt2 variant
 out_dir = 'out-546' # ignored if init_from is not 'resume'
 test_file = 'data/ese546data/training.txt'
-max_new_tokens = 100 # maximum tokens to generate per sample
-temperature = 0.8 # sampling temperature
+max_new_tokens = 1000 # maximum tokens to generate per sample
+temperature = 0.1 # sampling temperature
 top_k = 200 # top-k sampling
 device = 'cuda:3' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
@@ -149,13 +149,33 @@ correct = 0
 total = len(problems)
 errors = []
 
+context = """
+abs(-16)
+$|\\abs -16 
+=16
+16
+16\\&\\
+abs(-8)
+$|\\abs -8 
+=8
+8
+8\\&\\
+abs(abs(-12))
+abs($)|\\abs -12 
+=12
+abs(12)
+$|\\abs 12 
+=12
+12
+12\\&\\
+"""
 for i, problem in enumerate(problems):
     if i > 1000:
         break
     if (i + 1) % 100 == 0:
         print(f"Progress: {i+1}/{total} ({(i+1)/total*100:.1f}%) - Correct: {correct}/{i+1} ({correct/(i+1)*100:.1f}%)")
     
-    prompt = problem['prompt']
+    prompt = context + problem['prompt']
     correct_answer = problem['answer']
     
     # Encode prompt
@@ -175,7 +195,7 @@ for i, problem in enumerate(problems):
             with ctx:
                 y = model.generate(x, 2, temperature=temperature, top_k=top_k)
                 decoded = decode(y[0].tolist())
-                while "\\&\\" not in decoded and len(decoded) < max_new_tokens:
+                while "\\&\\" not in decoded[-5:] and len(decoded) < max_new_tokens:
                     y = torch.tensor(encode(calculate(decoded)))[None, ...].to(device)
                     y = model.generate(y, 2, temperature=temperature, top_k=top_k)
                     decoded = decode(y[0].tolist())

@@ -76,7 +76,7 @@ class Operation(Node):
             f"{v:.{precision}f}"
             for v in op_vals
         ])
-        return f"|\\{self.tool_name} {vals_str}"
+        return f"|\\{self.tool_name} {vals_str} "  # Added trailing space
 
     def _should_wrap(self, child: Node, is_right_side: bool = False) -> bool:
         """
@@ -367,17 +367,18 @@ def main():
     print(gen.solve_step_by_step(rand))
     
 def dataset_1():
-    # Only +, -, *, and abs(), integers (+/-) only. 
     # depth = 2
+
     registry = [
         [Add, Sub, Mul],
         [Abs]
     ]
-    gen = MathDataGenerator(max_depth=2, precision=0, registry=registry)
+
+    gen = MathDataGenerator(max_depth=2, precision = 0, registry=registry, init_negative = False)
     
-    input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
+    input_file_path = os.path.join(os.path.dirname(__file__), 'training.txt')
     with open(input_file_path, "w") as f:
-        for i in range(10_000):
+        for i in range(300_000):
             rand = gen.generate_random_tree()
             result = gen.solve_step_by_step(rand)
             f.write(str(result))
@@ -388,12 +389,20 @@ def dataset_2():
     # /, sin, cos, ln, exp
     # depth = 2, floats too
     # initialize negative
-    gen = MathDataGenerator(max_depth=2, init_negative=True)
+    registry = [
+        [Add, Sub, Mul],
+        [Abs]
+    ]
+    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=True, registry=registry)
+
+    input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
+    with open(input_file_path, "w") as f:
+        for i in range(1_000):
+            rand = gen.generate_random_tree()
+            result = gen.solve_step_by_step(rand)
+            f.write(str(result))
+            f.write("\n")
     
-    for i in range(10):
-        print(f"\nProblem {i+1}: ")
-        rand = gen.generate_random_tree()
-        print(gen.solve_step_by_step(rand))
     
 def dataset_3():
     # dataset_2 AND
@@ -410,5 +419,5 @@ def dataset_3():
 if __name__ == "__main__":
     # main()
     dataset_1()
-    # dataset_2()
+    dataset_2()
     # dataset_3()
