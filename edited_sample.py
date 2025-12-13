@@ -7,18 +7,19 @@ from contextlib import nullcontext
 import torch
 import tiktoken
 import re
+import math
 from model import GPTConfig, GPT
 
 # -----------------------------------------------------------------------------
 init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
 out_dir = 'out-546' # ignored if init_from is not 'resume'
-start = "\n" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
+start = "19+19" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
 num_samples = 1 # number of samples to draw
 max_new_tokens = 20 # number of tokens generated in each sample
 temperature = 0.8 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions
 top_k = 200 # retain only the top_k most likely tokens, clamp others to have 0 probability
 seed = 1337
-device = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
+device = 'cuda:3' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'
 compile = False # use PyTorch 2.0 to compile the model to be faster
 exec(open('configurator.py').read()) # overrides from command line or config file
@@ -65,6 +66,7 @@ if load_meta:
         meta = pickle.load(f)
     # TODO want to make this more general to arbitrary encoder/decoder schemes
     stoi, itos = meta['stoi'], meta['itos']
+    print(f"Available characters: {repr(''.join(sorted(stoi.keys())))}")
     encode = lambda s: [stoi[c] for c in s]
     decode = lambda l: ''.join([itos[i] for i in l])
 else:
@@ -82,39 +84,81 @@ start_ids = encode(start)
 x = (torch.tensor(start_ids, dtype=torch.long, device=device)[None, ...])
 
 
-def calculate(string):
+def calculate(string, precision = 0):
     lines = string.splitlines()
+
+
     output = []
 
     for i in range(len(lines)):
         line = lines[i]
         output.append(line)
 
-        match = re.search(r'\\add\s+(-?\d+)\s+(-?\d+)', line)
-        if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
-            a = int(match.group(1))
-            b = int(match.group(2))
+        match = re.search(r'\\add\s+(-?\d+)\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
 
-            output.append("=" + str(a + b))
+            a = float(match.group(1))
+            b = float(match.group(2))
+            result = a + b
+            output.append(f"={result:.{precision}f}")
 
-        match = re.search(r'\\sub\s+(-?\d+)\s+(-?\d+)', line)
-        if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
-            a = int(match.group(1))
-            b = int(match.group(2))
+        match = re.search(r'\\sub\s+(-?\d+)\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+                b = float(match.group(2))
 
-            output.append("=" + str(a - b))
+                result = a - b
+                output.append(f"={result:.{precision}f}")
         
-        match = re.search(r'\\mul\s+(-?\d+)\s+(-?\d+)', line)
-        if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
-            a = int(match.group(1))
-            b = int(match.group(2))
+        match = re.search(r'\\mul\s+(-?\d+)\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+                b = float(match.group(2))
 
-            output.append("=" + str(a * b))
-        match = re.search(r'\\abs\s+(-?\d+)', line)
-        if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
-            a = int(match.group(1))
+                result = a * b
+                output.append(f"={result:.{precision}f}")
 
-            output.append("=" + str(abs(a)))
+        match = re.search(r'\\abs\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+                result = abs(a)
+                output.append(f"={result:.{precision}f}")
+        
+        match = re.search(r'\\div\s+(-?\d+)\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+                b = float(match.group(2))
+
+                result = a / b
+
+                output.append(f"={result:.{precision}f}")
+
+        match = re.search(r'\\sin\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+                result = math.sin(a)
+                output.append(f"={result:.{precision}f}")
+        
+        match = re.search(r'\\cos\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+
+                result = math.cos(a)
+                output.append(f"={result:.{precision}f}")
+
+        match = re.search(r'\\log\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
+                a = float(match.group(1))
+
+                result = math.log(a)
+
+                output.append(f"={result:.{precision}f}")
+        
+        match = re.search(r'\\exp\s+(-?\d+)\s', line)
+        if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
+                a = float(match.group(1))
+                result = math.exp(a)
+                output.append(f"={result:.{precision}f}")
     
     return "\n".join(output)
 
