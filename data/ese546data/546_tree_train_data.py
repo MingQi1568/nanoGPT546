@@ -393,7 +393,7 @@ def dataset_2():
         [Add, Sub, Mul],
         [Abs]
     ]
-    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=True, registry=registry)
+    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=False, registry=registry)
 
     input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
     with open(input_file_path, "w") as f:
@@ -417,6 +417,7 @@ def dataset_3():
 
 
 if __name__ == "__main__":
+    random.seed(42690)
     # main()
     dataset_1()
     dataset_2()

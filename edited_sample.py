@@ -189,7 +189,7 @@ with torch.no_grad():
             
             y = model.generate(x, 2, temperature=temperature, top_k=top_k)
             decoded = decode(y[0].tolist())
-            while "\\&\\" not in decoded[-5:] and len(decoded) < 1000:
+            while "\\&\\" not in decoded and len(decoded) < 100:
                 y = torch.tensor(encode(calculate(decoded)))[None, ...].to(device)
                 y = model.generate(y, 2, temperature=temperature, top_k=top_k)
                 decoded = decode(y[0].tolist())
