@@ -13,11 +13,11 @@ from edited_sample import calculate
 # Configuration
 init_from = 'resume' # 'resume' (from an out_dir) or a gpt2 variant
 out_dir = 'out-546' # ignored if init_from is not 'resume'
-test_file = 'data/ese546data/training.txt'
+test_file = 'data/ese546data/testing.txt'
 max_new_tokens = 1000 # maximum tokens to generate per sample
 temperature = 0.1 # sampling temperature
 top_k = 200 # top-k sampling
-device = 'cuda:3' # 'cpu', 'cuda', 'cuda:0', etc.
+device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
 compile = True # use PyTorch 2.0 to compile the model
 # -----------------------------------------------------------------------------
@@ -175,7 +175,7 @@ for i, problem in enumerate(problems):
     if (i + 1) % 100 == 0:
         print(f"Progress: {i+1}/{total} ({(i+1)/total*100:.1f}%) - Correct: {correct}/{i+1} ({correct/(i+1)*100:.1f}%)")
     
-    prompt = context + problem['prompt']
+    prompt = context + problem['prompt'] + '\n'
     correct_answer = problem['answer']
     
     # Encode prompt

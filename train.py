@@ -80,6 +80,7 @@ exec(open('configurator.py').read()) # overrides from command line or config fil
 config = {k: globals()[k] for k in config_keys} # will be useful for logging
 # -----------------------------------------------------------------------------
 
+
 # various inits, derived attributes, I/O setup
 ddp = int(os.environ.get('RANK', -1)) != -1 # is this a ddp run?
 if ddp:
@@ -141,8 +142,8 @@ def get_batch_ending_number(split):
         data = np.memmap(os.path.join(data_dir, 'val.bin'), dtype=np.uint16, mode='r')
     ix = []
     while len(ix) < batch_size:
-        index = numpy.random.randint(block_size + 1, len(data))
-        if data[index].isdigit():
+        index = np.random.randint(block_size + 1, len(data))
+        if itos[data[index]].isdigit() or itos[data[index-1]].isdigit(): #or the one before?
             ix.append(index - 1 - block_size)
 
     x = torch.stack([torch.from_numpy((data[i:i+block_size]).astype(np.int64)) for i in ix])
@@ -165,6 +166,7 @@ if os.path.exists(meta_path):
     with open(meta_path, 'rb') as f:
         meta = pickle.load(f)
     meta_vocab_size = meta['vocab_size']
+    stoi, itos = meta['stoi'], meta['itos']
     print(f"found vocab_size = {meta_vocab_size} (inside {meta_path})")
 
 # model init
@@ -327,7 +329,7 @@ while True:
         if iter_num < pre_numbers_iters:
             X, Y = get_batch('train')
         else:
-            if numpy.random.rand() < numbers_proportion:
+            if np.random.rand() < numbers_proportion:
                 X, Y = get_batch_ending_number('train')
             else:
                 X, Y = get_batch('train')

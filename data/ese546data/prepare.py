@@ -9,7 +9,7 @@ import pickle
 import numpy as np
 
 # read the testing.txt dataset
-input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
+input_file_path = os.path.join(os.path.dirname(__file__), 'training.txt')
 with open(input_file_path, 'r') as f:
     data = f.read()
 print(f"length of dataset in characters: {len(data):,}")

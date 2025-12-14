@@ -393,11 +393,11 @@ def dataset_2():
         [Add, Sub, Mul],
         [Abs]
     ]
-    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=True, registry=registry)
+    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=False, registry=registry)
 
     input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
     with open(input_file_path, "w") as f:
-        for i in range(1_000):
+        for i in range(10_000):
             rand = gen.generate_random_tree()
             result = gen.solve_step_by_step(rand)
             f.write(str(result))

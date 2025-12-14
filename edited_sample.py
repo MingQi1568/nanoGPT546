@@ -15,23 +15,23 @@ init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g.
 out_dir = 'out-546' # ignored if init_from is not 'resume'
 start = """
 abs(-16)
-$|\abs -16 
+$|\\abs -16 
 =16
 16
-16\&\
+16\\&\\
 abs(-8)
-$|\abs -8 
+$|\\abs -8 
 =8
 8
-8\&\
+8\\&\\
 abs(abs(-12))
-abs($)|\abs -12 
+abs($)|\\abs -12 
 =12
 abs(12)
-$|\abs 12 
+$|\\abs 12 
 =12
 12
-12\&\
+12\\&\\
 19+34""" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
 num_samples = 1 # number of samples to draw
 max_new_tokens = 20 # number of tokens generated in each sample
