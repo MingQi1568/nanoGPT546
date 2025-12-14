@@ -113,7 +113,7 @@ def calculate(string, precision = 0):
         line = lines[i]
         output.append(line)
 
-        match = re.search(r'\\add\s+(-?\d+)\s+(-?\d+)\s', line)
+        match = re.search(r'\\add\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
 
             a = float(match.group(1))
@@ -121,7 +121,7 @@ def calculate(string, precision = 0):
             result = a + b
             output.append(f"={result:.{precision}f}")
 
-        match = re.search(r'\\sub\s+(-?\d+)\s+(-?\d+)\s', line)
+        match = re.search(r'\\sub\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 b = float(match.group(2))
@@ -129,7 +129,7 @@ def calculate(string, precision = 0):
                 result = a - b
                 output.append(f"={result:.{precision}f}")
         
-        match = re.search(r'\\mul\s+(-?\d+)\s+(-?\d+)\s', line)
+        match = re.search(r'\\mul\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 b = float(match.group(2))
@@ -137,13 +137,13 @@ def calculate(string, precision = 0):
                 result = a * b
                 output.append(f"={result:.{precision}f}")
 
-        match = re.search(r'\\abs\s+(-?\d+)\s', line)
+        match = re.search(r'\\abs\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 result = abs(a)
                 output.append(f"={result:.{precision}f}")
         
-        match = re.search(r'\\div\s+(-?\d+)\s+(-?\d+)\s', line)
+        match = re.search(r'\\div\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 b = float(match.group(2))
@@ -152,20 +152,20 @@ def calculate(string, precision = 0):
 
                 output.append(f"={result:.{precision}f}")
 
-        match = re.search(r'\\sin\s+(-?\d+)\s', line)
+        match = re.search(r'\\sin\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 result = math.sin(a)
                 output.append(f"={result:.{precision}f}")
         
-        match = re.search(r'\\cos\s+(-?\d+)\s', line)
+        match = re.search(r'\\cos\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
 
                 result = math.cos(a)
                 output.append(f"={result:.{precision}f}")
 
-        match = re.search(r'\\log\s+(-?\d+)\s', line)
+        match = re.search(r'\\log\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
 
@@ -173,13 +173,14 @@ def calculate(string, precision = 0):
 
                 output.append(f"={result:.{precision}f}")
         
-        match = re.search(r'\\exp\s+(-?\d+)\s', line)
+        match = re.search(r'\\exp\s+(-?\d+(?:\.\d+)?)\s', line)
         if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
                 a = float(match.group(1))
                 result = math.exp(a)
                 output.append(f"={result:.{precision}f}")
     
     return "\n".join(output)
+
 
 
 # run generation HELLO
