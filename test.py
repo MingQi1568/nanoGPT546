@@ -150,30 +150,10 @@ total = len(problems)
 errors = []
 
 context = """
-abs(-16)
-$|\\abs -16 
-=16
-16
-16\\&\\
-abs(-8)
-$|\\abs -8 
-=8
-8
-8\\&\\
-abs(abs(-12))
-abs($)|\\abs -12 
-=12
-abs(12)
-$|\\abs 12 
-=12
-12
-12\\&\\
 """
 for i, problem in enumerate(problems):
-    if i > 1000:
+    if i >= 1000:
         break
-    if (i + 1) % 100 == 0:
-        print(f"Progress: {i+1}/{total} ({(i+1)/total*100:.1f}%) - Correct: {correct}/{i+1} ({correct/(i+1)*100:.1f}%)")
     
     prompt = context + problem['prompt'] + '\n'
     correct_answer = problem['answer']
@@ -216,6 +196,10 @@ for i, problem in enumerate(problems):
     else:
         if len(errors) < 10:  # Only store first 10 errors for display
             errors.append(f"Problem {i+1}: Prompt='{prompt}' | Expected='{correct_answer}' | Got='{predicted_answer}' | Decoded='{decoded}'")
+            
+    if (i + 1) % 100 == 0:
+        print(f"Progress: {i+1}/{total} ({(i+1)/total*100:.1f}%) - Correct: {correct}/{i+1} ({correct/(i+1)*100:.1f}%)")
+
 
 # Print results
 print("\n" + "="*80)

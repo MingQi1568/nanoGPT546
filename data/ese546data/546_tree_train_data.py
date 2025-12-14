@@ -146,7 +146,7 @@ class Div(Operation):
     precedence = 2
     def evaluate(self): 
         denom = self.right.evaluate()
-        return self.left.evaluate() / denom if denom != 0 else 0.0
+        return self.left.evaluate() / denom if denom != 0 else float('nan')
     
 class Abs(Operation):
     tool_name = "abs"
@@ -182,8 +182,10 @@ class Exp(Operation):
     precedence = 3
     def evaluate(self): 
         val = self.left.evaluate()
-        if val > 100: return float("inf")
-        return math.exp(val)
+        try:
+            return math.exp(val)
+        except OverflowError:
+            return float("inf")
 
 # --- 3. The Generator Engine ---
 
