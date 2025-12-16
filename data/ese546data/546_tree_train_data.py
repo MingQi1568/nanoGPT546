@@ -307,8 +307,10 @@ class MathDataGenerator:
             lines.append(f"{context}{tool_sig}")
             result_val = target.evaluate()
             # Standard output format for chain of thought
-            lines.append(f"={result_val:.{self.precision}f}")
-            new_node = Number(float(f"{result_val:.{self.precision}f}"), self.precision)
+            baked_val = float(f"{result_val:.{self.precision}f}")
+            if baked_val == 0: baked_val = 0.0 # Standardize negative zero
+            lines.append(f"={baked_val:.{self.precision}f}\n")
+            new_node = Number(baked_val, self.precision)
             if root is target:
                 root = new_node
             else:
