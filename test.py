@@ -12,14 +12,14 @@ from edited_sample import calculate
 # -----------------------------------------------------------------------------
 # Configuration
 init_from = 'resume' # 'resume' (from an out_dir) or a gpt2 variant
-out_dir = 'out-546' # ignored if init_from is not 'resume'
+out_dir = '/content/drive/MyDrive/nanoGPT_Output' # ignored if init_from is not 'resume'
 test_file = 'data/ese546data/testing.txt'
 max_new_tokens = 1000 # maximum tokens to generate per sample
 temperature = 0.1 # sampling temperature
 top_k = 200 # top-k sampling
 device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
-compile = True # use PyTorch 2.0 to compile the model
+compile = False # use PyTorch 2.0 to compile the model
 # -----------------------------------------------------------------------------
 
 torch.backends.cuda.matmul.allow_tf32 = True
