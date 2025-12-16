@@ -10,7 +10,7 @@ import re
 import math
 from model import GPTConfig, GPT
 
-def calculate(string, precision=4, logging=False): 
+def calculate(string, input_precision=4, output_precision=4, logging=False): 
     lines = string.splitlines()
     output = []
 
@@ -86,7 +86,8 @@ def calculate(string, precision=4, logging=False):
 
         if result is not None:
             if result == 0: result = 0.0 # Standardize negative zero
-            formatted_res = f"={result:.{precision}f}"
+            value = float(f"result:.{input_precision}f") # round as input precision
+            formatted_res = f"={value:.{output_precision}f}" # but print out as output precision
             
             if logging: print(f"[{op_name}] -> {formatted_res}") 
 
