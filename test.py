@@ -21,7 +21,8 @@ device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
 compile = False # use PyTorch 2.0 to compile the model
 use_calculator = True # use the external calculator function
-precision = 4  # decimal places for numerical answers, of calculator output
+rounding_precision = 0  # decimal places for numerical answers, of calculator output
+printing_precision = 4  # decimal places for numerical answers, of calculator output
 logging = False  # whether to log calculation steps
 # -----------------------------------------------------------------------------
 
@@ -142,7 +143,7 @@ def normalize_answer(ans_str):
     # Try to parse as float and round to 4 decimal places (matching training precision)
     try:
         val = float(ans_str)
-        return f"{val:.{precision}f}"
+        return f"{val:.{rounding_precision}f}"
     except ValueError:
         return ans_str
 
@@ -180,7 +181,7 @@ for i, problem in enumerate(problems):
                 decoded = decode(y[0].tolist())
                 while "\\&\\" not in decoded[-5:] and len(decoded) < max_new_tokens:
                     if use_calculator:
-                        calculator_output = calculate(decoded, precision=precision, logging=logging)
+                        calculator_output = calculate(decoded, rounding_precision=rounding_precision, printing_precision=printing_precision, logging=logging)
                     else:
                         calculator_output = decoded
                     y = torch.tensor(encode(calculator_output))[None, ...].to(device)
