@@ -181,7 +181,7 @@ for i, problem in enumerate(problems):
                 decoded = decode(y[0].tolist())
                 while "\\&\\" not in decoded[-5:] and len(decoded) < max_new_tokens:
                     if use_calculator:
-                        calculator_output = calculate(decoded, rounding_precision=rounding_precision, printing_precision=printing_precision, logging=logging)
+                        calculator_output = calculate(decoded, input_precision=rounding_precision, output_precision=printing_precision, logging=logging)
                     else:
                         calculator_output = decoded
                     y = torch.tensor(encode(calculator_output))[None, ...].to(device)
