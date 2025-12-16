@@ -20,8 +20,8 @@ top_k = 200 # top-k sampling
 device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
 compile = False # use PyTorch 2.0 to compile the model
-rounding_precision = 0
-printing_precision = 4  # decimal places for numerical answers, of calculator output
+rounding_precision = 4
+printing_precision = 0  # decimal places for numerical answers, of calculator output
 logging = False  # whether to log calculation steps
 # -----------------------------------------------------------------------------
 

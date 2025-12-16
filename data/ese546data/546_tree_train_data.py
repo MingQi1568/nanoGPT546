@@ -427,6 +427,6 @@ def dataset_3(filepath):
 if __name__ == "__main__":
     # main()
     # dataset_1()
-    dataset_2("training.txt", count=300_000, precision=4)
-    dataset_2("testing.txt", count=1_000, precision=0)
+    dataset_2("training.txt", count=300_000, precision=0)
+    dataset_2("testing.txt", count=1_000, precision=4)
     # dataset_3()

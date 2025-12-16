@@ -12,7 +12,7 @@ from edited_sample import calculate
 # -----------------------------------------------------------------------------
 # Configuration
 init_from = 'resume' # 'resume' (from an out_dir) or a gpt2 variant
-out_dir = '/content/drive/MyDrive/nanoGPT_Output' # ignored if init_from is not 'resume'
+out_dir = '/content/drive/MyDrive/nanoGPT_Output2' # ignored if init_from is not 'resume'
 test_file = 'data/ese546data/testing.txt'
 max_new_tokens = 1000 # maximum tokens to generate per sample
 temperature = 0.1 # sampling temperature
@@ -21,8 +21,8 @@ device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
 compile = False # use PyTorch 2.0 to compile the model
 use_calculator = True # use the external calculator function
-rounding_precision = 0  # decimal places for numerical answers, of calculator output
-printing_precision = 4  # decimal places for numerical answers, of calculator output
+rounding_precision = 4  # decimal places for numerical answers, of calculator output
+printing_precision = 0  # decimal places for numerical answers, of calculator output
 logging = False  # whether to log calculation steps
 # -----------------------------------------------------------------------------
 
