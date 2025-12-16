@@ -142,7 +142,7 @@ def normalize_answer(ans_str):
     # Try to parse as float and round to 4 decimal places (matching training precision)
     try:
         val = float(ans_str)
-        return f"{val:.4f}"
+        return f"{val:.{precision}f}"
     except ValueError:
         return ans_str
 
