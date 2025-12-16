@@ -392,10 +392,10 @@ def dataset_2(filepath, count=10_000):
     # depth = 2, floats too
     # initialize negative
     registry = [
-        [Add, Sub, Mul],
-        [Abs]
+        [Add, Sub, Mul, Div],
+        [Abs, Sin, Cos, Log, Exp]
     ]
-    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=False, registry=registry)
+    gen = MathDataGenerator(max_depth=2, precision=4, init_negative=True, registry=registry)
 
     input_file_path = os.path.join(os.path.dirname(__file__), filepath)
     with open(input_file_path, "w") as f:
