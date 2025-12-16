@@ -309,7 +309,7 @@ class MathDataGenerator:
             # Standard output format for chain of thought
             baked_val = float(f"{result_val:.{self.precision}f}")
             if baked_val == 0: baked_val = 0.0 # Standardize negative zero
-            lines.append(f"={baked_val:.{self.precision}f}\n")
+            lines.append(f"={baked_val:.{self.precision}f}")
             new_node = Number(baked_val, self.precision)
             if root is target:
                 root = new_node
@@ -392,7 +392,7 @@ def dataset_1(filepath, count=10_000):
             f.write(str(result))
             f.write("\n")
     
-def dataset_2(filepath, count=10_000):
+def dataset_2(filepath, count=10_000, precision=4):
     # dataset_1 AND
     # /, sin, cos, ln, exp
     # depth = 2, floats too
@@ -401,7 +401,7 @@ def dataset_2(filepath, count=10_000):
         [Add, Sub, Mul, Div],
         [Abs, Sin, Cos, Log, Exp]
     ]
-    gen = MathDataGenerator(max_depth=2, precision=4, init_negative=True, registry=registry)
+    gen = MathDataGenerator(max_depth=2, precision=precision, init_negative=True, registry=registry)
 
     input_file_path = os.path.join(os.path.dirname(__file__), filepath)
     with open(input_file_path, "w") as f:
@@ -427,6 +427,6 @@ def dataset_3(filepath):
 if __name__ == "__main__":
     # main()
     # dataset_1()
-    dataset_2("training.txt", count=300_000)
-    dataset_2("testing.txt", count=1_000)
+    dataset_2("training.txt", count=300_000, precision=4)
+    dataset_2("testing.txt", count=1_000, precision=0)
     # dataset_3()
