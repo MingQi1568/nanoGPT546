@@ -38,7 +38,7 @@ max_new_tokens = 20 # number of tokens generated in each sample
 temperature = 0.1 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions
 top_k = 200 # retain only the top_k most likely tokens, clamp others to have 0 probability
 seed = 1337
-device = 'cuda:3' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
+device = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'
 compile = False # use PyTorch 2.0 to compile the model to be faster
 exec(open('configurator.py').read()) # overrides from command line or config file
@@ -119,7 +119,8 @@ def calculate(string, precision = 0):
             a = float(match.group(1))
             b = float(match.group(2))
             result = a + b
-            output.append(f"={result:.{precision}f}")
+            if result == 0: result = 0.0
+            output.append(f"={result:.{precision}f}\n")
 
         match = re.search(r'\\sub\s+(-?\d+)\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
@@ -127,7 +128,8 @@ def calculate(string, precision = 0):
                 b = float(match.group(2))
 
                 result = a - b
-                output.append(f"={result:.{precision}f}")
+                if result == 0: result = 0.0
+                output.append(f"={result:.{precision}f}\n")
         
         match = re.search(r'\\mul\s+(-?\d+)\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
@@ -135,49 +137,60 @@ def calculate(string, precision = 0):
                 b = float(match.group(2))
 
                 result = a * b
-                output.append(f"={result:.{precision}f}")
+                if result == 0: result = 0.0
+                output.append(f"={result:.{precision}f}\n")
 
         match = re.search(r'\\abs\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 result = abs(a)
-                output.append(f"={result:.{precision}f}")
+                output.append(f"={result:.{precision}f}\n")
         
         match = re.search(r'\\div\s+(-?\d+)\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 b = float(match.group(2))
 
-                result = a / b
-
-                output.append(f"={result:.{precision}f}")
+                try:
+                    result = a / b
+                    if result == 0: result = 0.0
+                except ZeroDivisionError:
+                    result = float('nan')
+                output.append(f"={result:.{precision}f}\n")
 
         match = re.search(r'\\sin\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
                 result = math.sin(a)
-                output.append(f"={result:.{precision}f}")
+                if result == 0: result = 0.0
+                output.append(f"={result:.{precision}f}\n")
         
         match = re.search(r'\\cos\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
 
                 result = math.cos(a)
-                output.append(f"={result:.{precision}f}")
+                output.append(f"={result:.{precision}f}\n")
 
         match = re.search(r'\\log\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
                 a = float(match.group(1))
 
-                result = math.log(a)
+                try:
+                    result = math.log(a)
+                except ValueError:
+                    result = float('nan')
 
-                output.append(f"={result:.{precision}f}")
+                output.append(f"={result:.{precision}f}\n")
         
         match = re.search(r'\\exp\s+(-?\d+)\s', line)
         if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
                 a = float(match.group(1))
-                result = math.exp(a)
-                output.append(f"={result:.{precision}f}")
+                try:
+                    result = math.exp(a)
+                except OverflowError:
+                    result = float('inf')
+                output.append(f"={result:.{precision}f}\n")
     
     return "\n".join(output)
 
