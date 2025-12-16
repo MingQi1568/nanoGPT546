@@ -20,6 +20,7 @@ top_k = 200 # top-k sampling
 device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
 compile = False # use PyTorch 2.0 to compile the model
+use_calculator = True # use the external calculator function
 precision = 4  # decimal places for numerical answers, of calculator output
 logging = False  # whether to log calculation steps
 # -----------------------------------------------------------------------------
@@ -178,7 +179,10 @@ for i, problem in enumerate(problems):
                 y = model.generate(x, 2, temperature=temperature, top_k=top_k)
                 decoded = decode(y[0].tolist())
                 while "\\&\\" not in decoded[-5:] and len(decoded) < max_new_tokens:
-                    calculator_output = calculate(decoded, precision=precision, logging=logging)
+                    if use_calculator:
+                        calculator_output = calculate(decoded, precision=precision, logging=logging)
+                    else:
+                        calculator_output = decoded
                     y = torch.tensor(encode(calculator_output))[None, ...].to(device)
                     y = model.generate(y, 2, temperature=temperature, top_k=top_k)
                     decoded = decode(y[0].tolist())

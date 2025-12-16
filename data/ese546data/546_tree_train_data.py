@@ -308,7 +308,7 @@ class MathDataGenerator:
             result_val = target.evaluate()
             # Standard output format for chain of thought
             lines.append(f"={result_val:.{self.precision}f}")
-            new_node = Number(result_val, self.precision)
+            new_node = Number(float(f"{result_val:.{self.precision}f}"), self.precision)
             if root is target:
                 root = new_node
             else:
@@ -362,6 +362,10 @@ def main():
     # Should render sin(5+3) not sin((5+3))
     # Unary ops generally handle their own brackets
     tree = Sin(Add(Number(5), Number(3)))
+    print(gen.solve_step_by_step(tree))
+    
+    print("\n--- Test for early rounding ---")
+    tree = Mul(Div(Number(10), Number(3)), Number(3))
     print(gen.solve_step_by_step(tree))
     
     print("\n--- 4. Complex Random ---")
