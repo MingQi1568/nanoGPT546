@@ -86,7 +86,7 @@ def calculate(string, rounding_precision=4, printing_precision=4, logging=False)
 
         if result is not None:
             if result == 0: result = 0.0 # Standardize negative zero
-            value = float(f"{result:.{rounding_precision}}f") # round as input precision
+            value = float(f"{result:.{rounding_precision}f}") # round as input precision
             formatted_res = f"={value:.{printing_precision}f}" # but print out as output precision
             
             if logging: print(f"[{op_name}] -> {formatted_res}") 
