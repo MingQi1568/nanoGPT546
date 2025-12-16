@@ -368,7 +368,7 @@ def main():
     rand = gen.generate_random_tree()
     print(gen.solve_step_by_step(rand))
     
-def dataset_1():
+def dataset_1(filepath, count=10_000):
     # depth = 2
 
     registry = [
@@ -378,15 +378,15 @@ def dataset_1():
 
     gen = MathDataGenerator(max_depth=2, precision = 0, registry=registry, init_negative = False)
     
-    input_file_path = os.path.join(os.path.dirname(__file__), 'training.txt')
+    input_file_path = os.path.join(os.path.dirname(__file__), filepath)
     with open(input_file_path, "w") as f:
-        for i in range(300_000):
+        for i in range(count):
             rand = gen.generate_random_tree()
             result = gen.solve_step_by_step(rand)
             f.write(str(result))
             f.write("\n")
     
-def dataset_2():
+def dataset_2(filepath, count=10_000):
     # dataset_1 AND
     # /, sin, cos, ln, exp
     # depth = 2, floats too
@@ -397,16 +397,16 @@ def dataset_2():
     ]
     gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=False, registry=registry)
 
-    input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
+    input_file_path = os.path.join(os.path.dirname(__file__), filepath)
     with open(input_file_path, "w") as f:
-        for i in range(10_000):
+        for i in range(count):
             rand = gen.generate_random_tree()
             result = gen.solve_step_by_step(rand)
             f.write(str(result))
             f.write("\n")
     
     
-def dataset_3():
+def dataset_3(filepath):
     # dataset_2 AND
     # higher depth
     # initialize with floats
@@ -420,6 +420,7 @@ def dataset_3():
 
 if __name__ == "__main__":
     # main()
-    dataset_1()
-    dataset_2()
+    # dataset_1()
+    dataset_2("training.txt", count=300_000)
+    dataset_2("testing.txt", count=1_000)
     # dataset_3()
