@@ -20,7 +20,6 @@ top_k = 200 # top-k sampling
 device = 'cuda' # 'cpu', 'cuda', 'cuda:0', etc.
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
 compile = False # use PyTorch 2.0 to compile the model
-use_calculator = True # use the external calculator function
 precision = 4  # decimal places for numerical answers, of calculator output
 logging = False  # whether to log calculation steps
 # -----------------------------------------------------------------------------
@@ -146,80 +145,106 @@ def normalize_answer(ans_str):
     except ValueError:
         return ans_str
 
-# Test the model
-print("\nTesting model...")
-correct = 0
-total = len(problems)
-errors = []
+# -----------------------------------------------------------------------------
+# Evaluation Logic
+# -----------------------------------------------------------------------------
 
-context = """
-"""
-for i, problem in enumerate(problems):
-    if i >= 1000:
-        break
+def run_evaluation(use_calculator_flag):
+    """Runs the generation loop for all problems with specific calc setting."""
+    results = {}
+    print(f"\n--- Running evaluation with use_calculator={use_calculator_flag} ---")
     
-    prompt = context + problem['prompt'] + '\n'
-    correct_answer = problem['answer']
-    
-    # Encode prompt
-    try:
-        start_ids = encode(prompt)
-        if not start_ids:
-            errors.append(f"Problem {i+1}: Empty encoding for prompt '{prompt}'")
-            continue
-        x = torch.tensor(start_ids, dtype=torch.long, device=device)[None, ...]
-    except KeyError as e:
-        errors.append(f"Problem {i+1}: Character not in vocabulary for prompt '{prompt}': {e}")
-        continue
-    
-    # Generate prediction using iterative approach (from edited_sample.py)
-    try:
-        with torch.no_grad():
-            with ctx:
-                y = model.generate(x, 2, temperature=temperature, top_k=top_k)
-                decoded = decode(y[0].tolist())
-                while "\\&\\" not in decoded[-5:] and len(decoded) < max_new_tokens:
-                    if use_calculator:
-                        calculator_output = calculate(decoded, precision=precision, logging=logging)
-                    else:
-                        calculator_output = decoded
-                    y = torch.tensor(encode(calculator_output))[None, ...].to(device)
-                    y = model.generate(y, 2, temperature=temperature, top_k=top_k)
+    for i, problem in enumerate(problems):
+        prompt = "\n" + problem['prompt'] + '\n'
+        
+        x = torch.tensor(encode(prompt), dtype=torch.long, device=device)[None, ...]
+        
+        try:
+            with torch.no_grad():
+                with ctx:
+                    # Generate first 2 tokens
+                    y = model.generate(x, 2, temperature=temperature, top_k=top_k)
                     decoded = decode(y[0].tolist())
-    except Exception as e:
-        errors.append(f"Problem {i+1}: Generation error: {e}")
-        continue
-    
-    # Extract predicted answer
-    predicted_answer = extract_answer(decoded)
-    
-    # Compare answers
-    correct_norm = normalize_answer(correct_answer)
-    predicted_norm = normalize_answer(predicted_answer)
-    
-    is_correct = (correct_norm == predicted_norm)
-    if is_correct:
-        correct += 1
-    else:
-        if len(errors) < 10:  # Only store first 10 errors for display
-            errors.append(f"Problem {i+1}: Prompt='{prompt}' | Expected='{correct_answer}' | Got='{predicted_answer}' | Decoded='{decoded}'")
+                    
+                    # Generation Loop
+                    while "\\&\\" not in decoded[-5:] and len(decoded) < max_new_tokens:
+                        if use_calculator_flag:
+                            # Use the imported calculate function
+                            calc_out = calculate(decoded, precision=precision)
+                        else:
+                            # Pass through raw text
+                            calc_out = decoded
+                            
+                        y = torch.tensor(encode(calc_out))[None, ...].to(device)
+                        y = model.generate(y, 2, temperature=temperature, top_k=top_k)
+                        decoded = decode(y[0].tolist())
             
-    if (i + 1) % 100 == 0:
-        print(f"Progress: {i+1}/{total} ({(i+1)/total*100:.1f}%) - Correct: {correct}/{i+1} ({correct/(i+1)*100:.1f}%)")
+            pred = extract_answer(decoded)
+            is_correct = normalize_answer(pred) == normalize_answer(problem['answer'])
+            
+            results[i] = {
+                'pred': pred,
+                'correct': is_correct,
+                'decoded': decoded
+            }
+            
+        except Exception as e:
+            results[i] = {'pred': 'ERROR', 'correct': False, 'decoded': str(e)}
+        
+        if (i+1) % 100 == 0:
+            print(f"Progress: {i+1}/{len(problems)}")
+            
+    return results
 
+# -----------------------------------------------------------------------------
+# Run Experiment
+# -----------------------------------------------------------------------------
 
-# Print results
+# 1. Run both modes
+no_calc_results = run_evaluation(False)
+yes_calc_results = run_evaluation(True)
+
+# 2. Analyze Symmetric Difference
+# Cases where Calc HELPED (Model Wrong -> Calc Right)
+calc_helped = []
+# Cases where Calc HURT (Model Right -> Calc Wrong)
+calc_hurt = []
+
+for i in range(len(problems)):
+    nc = no_calc_results[i]
+    yc = yes_calc_results[i]
+    
+    if not nc['correct'] and yc['correct']:
+        calc_helped.append(i)
+    elif nc['correct'] and not yc['correct']:
+        calc_hurt.append(i)
+
+# 3. Print Results
 print("\n" + "="*80)
-print("TEST RESULTS")
+print("SYMMETRIC DIFFERENCE ANALYSIS")
 print("="*80)
-print(f"Total problems: {total}")
-print(f"Correct: {correct}")
-print(f"Incorrect: {total - correct}")
-print(f"Accuracy: {correct/total*100:.2f}%")
+print(f"Total Samples: {len(problems)}")
+print(f"Cases where Calculator HELPED (Fixed the error): {len(calc_helped)}")
+print(f"Cases where Calculator HURT   (Broke the answer): {len(calc_hurt)}")
 print("="*80)
 
-if errors:
-    print(f"\nFirst {min(10, len(errors))} errors/examples:")
-    for error in errors[:10]:
-        print(f"  - {error}")
+print("\n--- Examples where Calculator HURT (Model was right, Calc made it wrong) ---")
+for idx in calc_hurt[:10]:
+    p = problems[idx]
+    nc = no_calc_results[idx]
+    yc = yes_calc_results[idx]
+    print(f"\nProblem {idx+1}: {p['prompt']}")
+    print(f"Expected: {p['answer']}")
+    print(f"WITHOUT Calc (Correct): {nc['pred']}")
+    print(f"WITH Calc    (Wrong):   {yc['pred']}")
+    print(f"Calc Trace Tail: {yc['decoded'][-200:].replace(chr(10), ' ')}") 
 
+print("\n--- Examples where Calculator HELPED (Model was wrong, Calc fixed it) ---")
+for idx in calc_helped[:10]:
+    p = problems[idx]
+    nc = no_calc_results[idx]
+    yc = yes_calc_results[idx]
+    print(f"\nProblem {idx+1}: {p['prompt']}")
+    print(f"Expected: {p['answer']}")
+    print(f"WITHOUT Calc (Wrong):   {nc['pred']}")
+    print(f"WITH Calc    (Correct): {yc['pred']}")

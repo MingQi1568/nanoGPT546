@@ -1,7 +1,7 @@
 # train a miniature character-level shakespeare model
 # good for debugging and playing on macbooks and such
 
-out_dir = 'out-546'
+out_dir = '/content/drive/MyDrive/nanoGPT_Output'
 eval_interval = 250 # keep frequent because we'll overfit
 eval_iters = 200
 log_interval = 50 # don't print too too often
@@ -14,7 +14,7 @@ wandb_project = '546-char'
 wandb_run_name = 'mini-gpt'
 
 dataset = 'ese546data'
-gradient_accumulation_steps = 1
+gradient_accumulation_steps = 8
 batch_size = 64
 block_size = 256 # context of up to 256 previous characters
 
@@ -34,4 +34,4 @@ warmup_iters = 100 # not super necessary potentially
 
 # on macbook also add
 device = 'cuda'  # run on cpu only
-compile = False # do not torch compile the model
+compile = True # do not torch compile the model

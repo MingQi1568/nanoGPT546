@@ -146,7 +146,7 @@ class Div(Operation):
     precedence = 2
     def evaluate(self): 
         denom = self.right.evaluate()
-        return self.left.evaluate() / denom if denom != 0 else 0.0
+        return self.left.evaluate() / denom if denom != 0 else float('nan')
     
 class Abs(Operation):
     tool_name = "abs"
@@ -182,8 +182,10 @@ class Exp(Operation):
     precedence = 3
     def evaluate(self): 
         val = self.left.evaluate()
-        if val > 100: return float("inf")
-        return math.exp(val)
+        try:
+            return math.exp(val)
+        except OverflowError:
+            return float("inf")
 
 # --- 3. The Generator Engine ---
 
@@ -305,8 +307,10 @@ class MathDataGenerator:
             lines.append(f"{context}{tool_sig}")
             result_val = target.evaluate()
             # Standard output format for chain of thought
-            lines.append(f"={result_val:.{self.precision}f}")
-            new_node = Number(result_val, self.precision)
+            baked_val = float(f"{result_val:.{self.precision}f}")
+            if baked_val == 0: baked_val = 0.0 # Standardize negative zero
+            lines.append(f"={baked_val:.{self.precision}f}\n")
+            new_node = Number(baked_val, self.precision)
             if root is target:
                 root = new_node
             else:
@@ -362,11 +366,15 @@ def main():
     tree = Sin(Add(Number(5), Number(3)))
     print(gen.solve_step_by_step(tree))
     
+    print("\n--- Test for early rounding ---")
+    tree = Mul(Div(Number(10), Number(3)), Number(3))
+    print(gen.solve_step_by_step(tree))
+    
     print("\n--- 4. Complex Random ---")
     rand = gen.generate_random_tree()
     print(gen.solve_step_by_step(rand))
     
-def dataset_1():
+def dataset_1(filepath, count=10_000):
     # depth = 2
 
     registry = [
@@ -376,35 +384,35 @@ def dataset_1():
 
     gen = MathDataGenerator(max_depth=2, precision = 0, registry=registry, init_negative = False)
     
-    input_file_path = os.path.join(os.path.dirname(__file__), 'training.txt')
+    input_file_path = os.path.join(os.path.dirname(__file__), filepath)
     with open(input_file_path, "w") as f:
-        for i in range(300_000):
+        for i in range(count):
             rand = gen.generate_random_tree()
             result = gen.solve_step_by_step(rand)
             f.write(str(result))
             f.write("\n")
     
-def dataset_2():
+def dataset_2(filepath, count=10_000):
     # dataset_1 AND
     # /, sin, cos, ln, exp
     # depth = 2, floats too
     # initialize negative
     registry = [
-        [Add, Sub, Mul],
-        [Abs]
+        [Add, Sub, Mul, Div],
+        [Abs, Sin, Cos, Log, Exp]
     ]
-    gen = MathDataGenerator(max_depth=2, precision = 0,init_negative=False, registry=registry)
+    gen = MathDataGenerator(max_depth=2, precision=4, init_negative=True, registry=registry)
 
-    input_file_path = os.path.join(os.path.dirname(__file__), 'testing.txt')
+    input_file_path = os.path.join(os.path.dirname(__file__), filepath)
     with open(input_file_path, "w") as f:
-        for i in range(10_000):
+        for i in range(count):
             rand = gen.generate_random_tree()
             result = gen.solve_step_by_step(rand)
             f.write(str(result))
             f.write("\n")
     
     
-def dataset_3():
+def dataset_3(filepath):
     # dataset_2 AND
     # higher depth
     # initialize with floats
@@ -419,6 +427,7 @@ def dataset_3():
 if __name__ == "__main__":
     random.seed(42690)
     # main()
-    dataset_1()
-    dataset_2()
+    # dataset_1()
+    dataset_2("training.txt", count=300_000)
+    dataset_2("testing.txt", count=1_000)
     # dataset_3()
