@@ -10,7 +10,7 @@ import re
 import math
 from model import GPTConfig, GPT
 
-def calculate(string, roundign_precision=4, printint_precision=4, logging=False): 
+def calculate(string, rounding_precision=4, printing_precision=4, logging=False): 
     lines = string.splitlines()
     output = []
 
