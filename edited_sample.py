@@ -10,94 +10,88 @@ import re
 import math
 from model import GPTConfig, GPT
 
-def calculate(string, precision = 0):
+def calculate(string, precision=4, logging=False): 
     lines = string.splitlines()
-
     output = []
+
+    # Matches: 5, -5, 5.0, -5.0001
+    num_pattern = r'(-?\d+(?:\.\d+)?)'
 
     for i in range(len(lines)):
         line = lines[i]
         output.append(line)
+        result = None
+        
+        is_valid_location = (i + 1 == len(lines)) or (not lines[i + 1].strip().startswith("="))
+        
+        if not is_valid_location:
+            continue
 
-        match = re.search(r'\\add\s+(-?\d+)\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-
-            a = float(match.group(1))
-            b = float(match.group(2))
+        op_name = ""
+        
+        if match := re.search(rf'\\add\s+{num_pattern}\s+{num_pattern}\s', line):
+            a, b = float(match.group(1)), float(match.group(2))
             result = a + b
-            if result == 0: result = 0.0
-            output.append(f"={result:.{precision}f}\n")
+            op_name = f"ADD {a} {b}"
 
-        match = re.search(r'\\sub\s+(-?\d+)\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
-                b = float(match.group(2))
+        # the elifs save time in case one match is found
+        elif match := re.search(rf'\\sub\s+{num_pattern}\s+{num_pattern}\s', line):
+            a, b = float(match.group(1)), float(match.group(2))
+            result = a - b
+            op_name = f"SUB {a} {b}"
 
-                result = a - b
-                if result == 0: result = 0.0
-                output.append(f"={result:.{precision}f}\n")
-        
-        match = re.search(r'\\mul\s+(-?\d+)\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
-                b = float(match.group(2))
+        elif match := re.search(rf'\\mul\s+{num_pattern}\s+{num_pattern}\s', line):
+            a, b = float(match.group(1)), float(match.group(2))
+            result = a * b
+            op_name = f"MUL {a} {b}"
 
-                result = a * b
-                if result == 0: result = 0.0
-                output.append(f"={result:.{precision}f}\n")
+        elif match := re.search(rf'\\div\s+{num_pattern}\s+{num_pattern}\s', line):
+            a, b = float(match.group(1)), float(match.group(2))
+            try:
+                result = a / b
+            except ZeroDivisionError:
+                result = float('nan')
+            op_name = f"DIV {a} {b}"
 
-        match = re.search(r'\\abs\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
-                result = abs(a)
-                output.append(f"={result:.{precision}f}\n")
-        
-        match = re.search(r'\\div\s+(-?\d+)\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
-                b = float(match.group(2))
+        elif match := re.search(rf'\\abs\s+{num_pattern}\s', line):
+            a = float(match.group(1))
+            result = abs(a)
+            op_name = f"ABS {a}"
 
-                try:
-                    result = a / b
-                    if result == 0: result = 0.0
-                except ZeroDivisionError:
-                    result = float('nan')
-                output.append(f"={result:.{precision}f}\n")
+        elif match := re.search(rf'\\sin\s+{num_pattern}\s', line):
+            a = float(match.group(1))
+            result = math.sin(a)
+            op_name = f"SIN {a}"
 
-        match = re.search(r'\\sin\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
-                result = math.sin(a)
-                if result == 0: result = 0.0
-                output.append(f"={result:.{precision}f}\n")
-        
-        match = re.search(r'\\cos\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
+        elif match := re.search(rf'\\cos\s+{num_pattern}\s', line):
+            a = float(match.group(1))
+            result = math.cos(a)
+            op_name = f"COS {a}"
 
-                result = math.cos(a)
-                output.append(f"={result:.{precision}f}\n")
+        elif match := re.search(rf'\\log\s+{num_pattern}\s', line):
+            a = float(match.group(1))
+            try:
+                result = math.log(a)
+            except ValueError:
+                result = float('nan')
+            op_name = f"LOG {a}"
 
-        match = re.search(r'\\log\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or (not lines[i + 1].lstrip().startswith("="))):
-                a = float(match.group(1))
+        elif match := re.search(rf'\\exp\s+{num_pattern}\s', line):
+            a = float(match.group(1))
+            try:
+                result = math.exp(a)
+            except OverflowError:
+                result = float('inf')
+            op_name = f"EXP {a}"
 
-                try:
-                    result = math.log(a)
-                except ValueError:
-                    result = float('nan')
+        if result is not None:
+            if result == 0: result = 0.0 # Standardize negative zero
+            formatted_res = f"={result:.{precision}f}"
+            
+            if logging: print(f"[{op_name}] -> {formatted_res}") 
 
-                output.append(f"={result:.{precision}f}\n")
-        
-        match = re.search(r'\\exp\s+(-?\d+)\s', line)
-        if match and (i + 1 == len(lines) or not lines[i + 1].lstrip().startswith("=")):
-                a = float(match.group(1))
-                try:
-                    result = math.exp(a)
-                except OverflowError:
-                    result = float('inf')
-                output.append(f"={result:.{precision}f}\n")
-    
+            output.append(formatted_res + "\n")
+
     return "\n".join(output)
 
 def main():
