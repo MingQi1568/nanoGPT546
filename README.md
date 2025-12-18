@@ -1,3 +1,7 @@
+**Addendum from ESE 546 Project Team** Shown is the training loss curves for our arithmetic chain of thought model: 
+
+![Training / Validation Loss (Log-Scale)](Code_Generated_Image.png)
+
 
 # nanoGPT
 

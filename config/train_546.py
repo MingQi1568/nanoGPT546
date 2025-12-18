@@ -1,7 +1,7 @@
 # train a miniature character-level shakespeare model
 # good for debugging and playing on macbooks and such
 
-out_dir = '/content/drive/MyDrive/nanoGPT_Output'
+out_dir = '/content/drive/MyDrive/nanoGPT_Output3'
 eval_interval = 250 # keep frequent because we'll overfit
 eval_iters = 200
 log_interval = 50 # don't print too too often
@@ -34,4 +34,4 @@ warmup_iters = 100 # not super necessary potentially
 
 # on macbook also add
 device = 'cuda'  # run on cpu only
-compile = True # do not torch compile the model
+compile = False # do not torch compile the model
